@@ -186,72 +186,74 @@ class Dialog
 			$message->setDialogId($this->dialogId);
 
             $result = $this->connection->send($message->toString());
-			$this->messageNumber++;
 
-			$this->logger->debug('< '.$result);
+        } catch (\Exception $e) {
+            $this->logger->critical($e->getMessage());
+            if ($e instanceof CurlException) {
+                $this->logger->debug(print_r($e->getCurlInfo(), true));
+            }
 
-			$response = new Response($result, $this);
-			$this->handleResponse($response);
-			#$this->logger->info('Response reads:');
-			#$this->logger->info($response->rawResponse);
+            throw $e;
+        }
 
-			if (!$response->isSuccess()) {
-				$summaryS = $response->getSegmentSummary();
-				$summaryM = $response->getMessageSummary();
+        $this->messageNumber++;
 
-				$summary = array();
-				foreach ($summaryS as $k => $v) {
-					$summary[$k] = $v;
-				}
+        $this->logger->debug('< '.$result);
 
-				foreach ($summaryM as $k => $v) {
-					if (isset($summary[$k])) {
-						$summary[$k] .= "($v)";
-					} else {
-						$summary[$k] = $v;
-					}
-				}
+        $response = new Response($result, $this);
+        $this->handleResponse($response);
+        #$this->logger->info('Response reads:');
+        #$this->logger->info($response->rawResponse);
 
-				$ex = new FailedRequestException($summary);
-				$this->logger->error($ex->getMessage());
-				throw $ex;
-			}
+        if (!$response->isSuccess()) {
+            $summaryS = $response->getSegmentSummary();
+            $summaryM = $response->getMessageSummary();
 
-			if (!$response->isStrongAuthRequired()) {
-				return $response;
-			}
-			
-			$response = new GetTANRequest($response->rawResponse, $this);
+            $summary = array();
+            foreach ($summaryS as $k => $v) {
+                $summary[$k] = $v;
+            }
 
-			if (!$tanCallback) {
-				return $response;
-			}
-			
-			if(!$this->dialogId) {
-				$this->dialogId = $response->getDialogId();
-			}
-			
-			if(!$this->systemId) {
-				$this->systemId = $response->getSystemId();
-			}
-			
+            foreach ($summaryM as $k => $v) {
+                if (isset($summary[$k])) {
+                    $summary[$k] .= "($v)";
+                } else {
+                    $summary[$k] = $v;
+                }
+            }
 
+            $ex = new FailedRequestException($summary);
+            $this->logger->error($ex->getMessage());
+            throw $ex;
+        }
 
-			if ($tan == '') {
-				throw new TANException('No TAN received!');
-			}
+        if (!$response->isStrongAuthRequired()) {
+            return $response;
+        }
 
-			$response = $this->submitTAN($response, $tanMechanism, $tan);
+        $response = new GetTANRequest($response->rawResponse, $this);
 
-			return $response;
-		} catch (\Exception $e) {
-			$this->logger->critical($e->getMessage());
-			if ($e instanceof CurlException) {
-				$this->logger->debug(print_r($e->getCurlInfo(), true));
-			}
+        if (!$tanCallback) {
+            return $response;
+        }
 
-			throw $e;
-		}
+        if(!$this->dialogId) {
+            $this->dialogId = $response->getDialogId();
+        }
+
+        if(!$this->systemId) {
+            $this->systemId = $response->getSystemId();
+        }
+
+        $tan = trim($tanCallback($response));
+
+        if ($tan == '') {
+            throw new TANException('No TAN received!');
+        }
+
+        $response = $this->submitTAN($response, $tanMechanism, $tan);
+
+        return $response;
 	}
 
     /**
@@ -281,7 +283,8 @@ class Dialog
 			array(
                 AbstractMessage::OPT_PINTAN_MECH => $tanMechanism
 			),
-			$tan
+			$tan,
+            $this->logger
 		);
 
 		$this->logger->info('');
@@ -450,7 +453,9 @@ class Dialog
 				$prepare,
 				new HKTAN(HKTAN::VERSION, 5, null, $tanMediaName)
 			),
-			$options
+			$options,
+            null,
+            $this->logger
 		);
 
 		#$this->logger->debug('Sending INIT message:');
@@ -527,7 +532,9 @@ class Dialog
 			$this->dialogId,
 			$this->messageNumber,
 			$encryptedSegments,
-			$options
+			$options,
+            null,
+            $this->logger
 		);
 
 		#$this->logger->debug('Sending SYNC message:');
@@ -597,7 +604,10 @@ class Dialog
 			$this->messageNumber,
 			array(
 				new HKEND(3, $this->dialogId)
-			)
+			),
+            [],
+            null,
+            $this->logger
 		);
 
 		#$this->logger->debug("S ".(string) $endMsg);
