@@ -4,6 +4,7 @@ namespace Fhp\Dialog;
 use Fhp\CurlException;
 use Fhp\Connection;
 use Fhp\Dialog\Exception\FailedRequestException;
+use Fhp\Dialog\Exception\TANException;
 use Fhp\Message\AbstractMessage;
 use Fhp\Message\Message;
 use Fhp\Model\DialogState;
