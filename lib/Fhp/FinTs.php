@@ -8,6 +8,7 @@ use Fhp\DataTypes\Ktv;
 use Fhp\Dialog\Dialog;
 use Fhp\Message\AbstractMessage;
 use Fhp\Message\Message;
+use Fhp\Model\DialogState;
 use Fhp\Model\SEPAAccount;
 use Fhp\Model\SEPAStandingOrder;
 use Fhp\MT940\Dialect\PostbankMT940;
@@ -541,6 +542,34 @@ class FinTs extends FinTsInternal
 
 		$dialog = $tanRequest->getDialog();
 		$this->dialog = $dialog;
+
+		$dialog->submitTAN($tanRequest, $this->getUsedPinTanMechanism($dialog), $tan);
+	}
+
+	public function finishSEPATANFromSerialized(GetTANRequest $tanRequest, $tan)
+	{
+        $this->logger->debug(__CLASS__ . ':' . __FUNCTION__ . ' called');
+
+		if ($tan == '') {
+			throw new TANException('No TAN received!');
+		}
+
+        if ($this->connection === null) {
+            $this->connection = new Connection($this->url, $this->timeoutConnect, $this->timeoutResponse);
+        }
+
+		$dialog = Dialog::restoreFromState(
+		    $tanRequest->getDialogState(),
+            $this->connection,
+            $this->bankCode,
+            $this->username,
+            $this->pin,
+            $this->logger,
+            $this->productName,
+            $this->productVersion
+        );
+		$tanRequest->setDialog($dialog);
+        $this->dialog = $dialog;
 
 		$dialog->submitTAN($tanRequest, $this->getUsedPinTanMechanism($dialog), $tan);
 	}
