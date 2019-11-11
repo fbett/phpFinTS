@@ -264,6 +264,14 @@ class Dialog
 		}
 	}
 
+    /**
+     * @param GetTANRequest $response
+     * @param array|int|string $tanMechanism
+     * @param string $tan
+     * @return GetTANRequest|Response
+     * @throws CurlException
+     * @throws FailedRequestException
+     */
 	public function submitTAN($response, $tanMechanism, $tan)
 	{
         if(!is_array($tanMechanism)) {

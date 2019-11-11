@@ -176,6 +176,10 @@ abstract class FinTsInternal
         return $dom->saveXml();
     }
 
+    /**
+     * @param Dialog $dialog
+     * @return array
+     */
     protected function getUsedPinTanMechanism($dialog)
     {
         $mechs = array_keys($dialog->getSupportedPinTanMechanisms());
