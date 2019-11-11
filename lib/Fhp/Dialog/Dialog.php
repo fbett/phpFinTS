@@ -235,18 +235,7 @@ class Dialog
 				$this->systemId = $response->getSystemId();
 			}
 			
-			$this->logger->info("Waiting max. 120 seconds for TAN from callback. Checking every $interval second(s)...");
-			for ($i = 0; $i < 120; $i += $interval) {
-				sleep($interval);
 
-				$tan = trim($tanCallback());
-				if ($tan == '') {
-					$this->logger->info('No TAN found, waiting '.(120 - $i).'!');
-					continue;
-				}
-
-				break;
-			}
 
 			if ($tan == '') {
 				throw new TANException('No TAN received!');
