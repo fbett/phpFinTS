@@ -6,6 +6,7 @@ use Fhp\Connection;
 use Fhp\Dialog\Exception\FailedRequestException;
 use Fhp\Message\AbstractMessage;
 use Fhp\Message\Message;
+use Fhp\Model\DialogState;
 use Fhp\Protocol\BPD;
 use Fhp\Protocol\UPD;
 use Fhp\Response\Initialization;
@@ -132,6 +133,41 @@ class Dialog
 
 		$this->logger->debug('New Dialog constructed');
 	}
+
+    /**
+     * @param DialogState $state
+     * @param Connection $connection
+     * @param string $bankCode
+     * @param string $username
+     * @param string $pin
+     * @param LoggerInterface $logger
+     * @param string $productName
+     * @param string $productVersion
+     *
+     * @return self
+     */
+	public static function restoreFromState(DialogState $state, Connection $connection, $bankCode,
+                                            $username, $pin, LoggerInterface $logger,
+                                            $productName, $productVersion
+    ) {
+	    $result = new self(
+            $connection,
+            $bankCode,
+            $username,
+            $pin,
+            $state->getSystemId(),
+            $logger,
+            $productName,
+            $productVersion
+        );
+	    $result->messageNumber = $state->getMessageNumber();
+	    $result->dialogId = $state->getDialogId();
+	    $result->supportedTanMechanisms = $state->getSupportedTanMechanisms();
+	    $result->bpd = $state->getBpd();
+	    $result->upd = $state->getUpd();
+
+	    return $result;
+    }
 
 	/**
 	 * @param AbstractMessage $message
