@@ -210,7 +210,7 @@ class FinTs extends FinTsInternal
 		#$dialog->endDialog(); //probably not required
 		$dialog->syncDialog($this->tanMechanism, $this->tanMediaName, $tanCallback);
 		$dialog->endDialog();
-		$dialog->initDialog($this->tanMechanism, $this->tanMediaName);
+		$dialog->initDialog($this->tanMechanism, $this->tanMediaName, $tanCallback);
 		$this->bankName = $dialog->getBankName();
 
 		$message = $this->getNewMessage(
