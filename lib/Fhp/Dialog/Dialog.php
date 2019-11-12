@@ -283,8 +283,7 @@ class Dialog
 			array(
                 AbstractMessage::OPT_PINTAN_MECH => $tanMechanism
 			),
-			$tan,
-            $this->logger
+			$tan
 		);
 
 		$this->logger->info('');
@@ -453,9 +452,7 @@ class Dialog
 				$prepare,
 				new HKTAN(HKTAN::VERSION, 5, null, $tanMediaName)
 			),
-			$options,
-            null,
-            $this->logger
+			$options
 		);
 
 		#$this->logger->debug('Sending INIT message:');
@@ -532,9 +529,7 @@ class Dialog
 			$this->dialogId,
 			$this->messageNumber,
 			$encryptedSegments,
-			$options,
-            null,
-            $this->logger
+			$options
 		);
 
 		#$this->logger->debug('Sending SYNC message:');
@@ -604,10 +599,7 @@ class Dialog
 			$this->messageNumber,
 			array(
 				new HKEND(3, $this->dialogId)
-			),
-            [],
-            null,
-            $this->logger
+			)
 		);
 
 		#$this->logger->debug("S ".(string) $endMsg);
